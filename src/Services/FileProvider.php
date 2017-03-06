@@ -13,6 +13,7 @@ use Nette\Http\Session;
 use Nette\Utils\Json;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Strings;
+use Nette\Utils\Arrays;
 
 use Tracy\Debugger;
 
@@ -36,6 +37,13 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 	protected $encoder;
 	protected $decoder;
 
+	protected $defaults = array(
+		'answers' => array(), 
+		'voted' => 0,
+		'multiple' => true,
+		'votedBy' => array(),
+		'question' => array('text' => '(not set yet)'));
+
 	public function __construct($path, callable $encoder, callable $decoder, Request $request, Session $session) {
 		$this->path = $path;
 		$this->request = $request;
@@ -50,8 +58,7 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 			$data = call_user_func_array($this->decoder, array(FileSystem::read($this->path)));
 			foreach($data['polls'] as $poll) {
 				if($poll['id'] === $id)
-					return array_merge(array('answers' => array(), "voted" => 0,
-													'multiple' => true, 'votedBy' => array()), $poll);
+					return Arrays::mergeTree($poll, $this->defaults);
 			}
 		} catch(\Exception $e) {
 			Debugger::log($e);
@@ -59,15 +66,32 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 		}
 	}
 
+	public function all() {
+		try {
+			$data = call_user_func_array($this->decoder, array(FileSystem::read($this->path)));
+			foreach($data['polls'] as &$poll) {
+				$poll = $this->convertToEntity($poll);
+			}
+		} catch(\Exception $e) {
+			Debugger::log($e);
+			return array();
+		}
+		return $data['polls'];
+	}
+
+	private function convertToEntity($array_poll) {
+		return (new Entities\Poll())
+				->setId($array_poll['id'])
+				->setVoted($array_poll['voted'])
+				->setMultiple(isset($array_poll['multiple']) ? $array_poll['multiple'] : false)
+				->setAnswers($this->getAnswers($array_poll['id']))
+				->setQuestion($this->getQuestion($array_poll['id']));
+	}
+
 
 	public function item($id) {
 		if(($poll = $this->load($id)) !== null) {
-			return (new Entities\Poll())
-				->setId($poll['id'])
-				->setVoted($poll['voted'])
-				->setMultiple(isset($poll['multiple']) ? $poll['multiple'] : false)
-				->setAnswers($this->getAnswers($id))
-				->setQuestion($this->getQuestion($id));
+			return $this->convertToEntity($poll);
 		}
 		return null;
 	}
@@ -75,13 +99,16 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 	private function save($poll) {
 		$saved = false;
 		$data = array('polls' => array());
+
 		try {
 			$data = call_user_func_array($this->decoder, array(FileSystem::read($this->path)));
+			if(isset($poll['id'])) {
 			foreach($data['polls'] as &$b_poll) {
 				if($b_poll['id'] === $poll['id']) {
 					$b_poll = $poll;
 					$saved = true;
 				}
+			}
 			}
 		} catch(\Exception $e) {
 			Debugger::log($e);
@@ -93,7 +120,7 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 		}
 		FileSystem::createDir(dirname($this->path));
 		FileSystem::write($this->path, call_user_func_array($this->encoder, array($data)), $mode = NULL);
-
+		return $this->item($poll['id']);
 	}
 
 	public function vote($id, $votes) {
@@ -117,6 +144,10 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 			return;
 		}
 		throw new \Exception("No poll");
+	}
+
+	public function create($text) {
+		return $this->save(Arrays::mergeTree(array('question' => array('text' => $text)), $this->defaults));
 	}
 
 	public function addAnswer($id, $newAnswer) {
