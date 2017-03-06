@@ -1,0 +1,28 @@
+{
+    "name": "tulinkry/poll",
+    "description": "Nette framework utility for creating simple poll forms",
+    "authors": [
+        {
+            "name": "Kryštof Tulinger"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:tulinkry/tulinkry.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:tulinkry/script.git"
+        }
+    ],    
+    "require": {
+        "php": ">=5.3.1",
+        "nette/nette": ">=2.3",
+        "tulinkry/tulinkry": "dev-master",
+        "tulinkry/script": "dev-master"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}

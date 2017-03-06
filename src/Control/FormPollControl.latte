@@ -1,0 +1,55 @@
+{if $poll}
+    <div class="well">
+    {snippet}
+        {if $flashes}
+            <ul class="list-group">
+                <li class="list-group-item alert alert-{$flash->type}" n:foreach="$flashes as $flash">
+                    {$flash->message}
+                </li>
+            </ul>
+        {/if}
+        <h4>{$question->text}</h4>
+        <ul class="list-group">
+            {var $first = array_slice($answers, 0, $options->getOption('collapseThreshold', NULL))}
+            <li class="list-group-item answer answer-display visible" n:foreach="$first as $answer">
+                {$iterator->counter}. {$answer->text} <small class="pull-right">({$answer->voted}x - {$ratio = $voted ? round($answer->voted/($voted/100), 2) : 0}%)</small>
+            </li>
+            {if $options->getOption('collapseThreshold', NULL)}
+                {var $rest = array_slice($answers, $options->getOption('collapseThreshold', NULL))}
+                <li class="list-group-item answer answer-display not-visible" n:foreach="$rest as $answer">
+                    {$answer->text} <small class="pull-right">({$answer->voted}x - {$ratio = $voted ? round($answer->voted/($voted/100), 2) : 0}%)</small>
+                </li>
+            {/if}
+        </ul>
+        {if $options->getOption('collapseThreshold', NULL) && count($rest)}
+            <p class="pull-right"><a href="#" id="poll-collapse">... zobrazit dalších {count($rest)} možností</a></p>
+            <div class="clearfix"></div>
+        {/if}
+        {if $isVotable}
+            {control pollControlForm}
+        {/if}
+        {if $options->getOption('collapseThreshold', NULL) && count($rest)}
+            <p class="pull-right"><a href="#" id="poll-collapse-form">... zobrazit dalších {count($rest)} možností</a></p>
+            <div class="clearfix"></div>
+        {/if}
+        <p>Počet hlasů: <strong>{$voted}</strong></p>
+    {/snippet}
+    </div>
+    {if $options->getOption('collapseThreshold', NULL)}
+    {script}
+        $('.answer.answer-form').slice({$options->getOption('collapseThreshold', 0) + 1}).addClass('not-visible')
+        $('.answer.answer-form-separator').slice({$options->getOption('collapseThreshold', 0)}).addClass('not-visible')
+        $('.answer.not-visible').hide()
+        $('#poll-collapse').click(function() {
+            $(this).closest('div').find('.answer.answer-display.not-visible').toggleClass('not-visible', 'visible').show()
+            $(this).hide();
+            return false;
+        })
+        $('#poll-collapse-form').click(function() {
+            $(this).closest('div').find('.answer.answer-form.not-visible, .answer.answer-form-separator.not-visible').toggleClass('not-visible', 'visible').show()
+            $(this).hide();
+            return false;
+        })
+    {/script}
+    {/if}
+{/if}
