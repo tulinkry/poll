@@ -58,7 +58,8 @@ class PollControl extends UI\Control
 		$this->template->question = $this->getQuestion();
 		$this->template->isVotable = $this->polls->isVotable($this->id);
 		$this->template->options = $this;
-		$this->template->voted = $this->template->poll !== null ? $this->template->poll->voted : true;
+		$this->template->voted = $this->template->poll !== null ? $this->template->poll->voted : 0;
+		$this->template->uniqueVoted = $this->template->poll !== null ? $this->template->poll->uniqueVoted : 0;
 		parent::render();
 	}
 }

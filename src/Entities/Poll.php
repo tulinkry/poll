@@ -9,6 +9,7 @@ class Poll extends Object
 	protected $id;
 	protected $multiple = false;
 	protected $voted;
+	protected $uniqueVoted;
 	protected $answers = array();
 	protected $question;
 
@@ -40,6 +41,15 @@ class Poll extends Object
 
 	public function setVoted($voted) {
 		$this->voted = $voted;
+		return $this;
+	}
+
+	public function getUniqueVoted() {
+		return $this->uniqueVoted;
+	}
+
+	public function setUniqueVoted($uniqueVoted) {
+		$this->uniqueVoted = $uniqueVoted;
 		return $this;
 	}
 

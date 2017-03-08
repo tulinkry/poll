@@ -8,7 +8,7 @@
                 </li>
             </ul>
         {/if}
-        <h4>{$question->text}</h4>
+        <h4>{$question->text}  <span n:if="$uniqueVoted > 0" class="badge pull-right" title="Hlasovalo již {$uniqueVoted} lidí">{$uniqueVoted}</span></h4>
         <ul class="list-group">
             {var $first = array_slice($answers, 0, $options->getOption('collapseThreshold', NULL))}
             <li class="list-group-item answer answer-display visible" n:foreach="$first as $answer">
@@ -32,7 +32,7 @@
             <p class="pull-right"><a href="#" id="poll-collapse-form">... zobrazit dalších {count($rest)} možností</a></p>
             <div class="clearfix"></div>
         {/if}
-        <p>Počet hlasů: <strong>{$voted}</strong></p>
+        <p>Počet hlasů: <strong>{$uniqueVoted}</strong></p>
     {/snippet}
     </div>
     {if $options->getOption('collapseThreshold', NULL)}

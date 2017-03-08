@@ -40,6 +40,7 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 	protected $defaults = array(
 		'answers' => array(), 
 		'voted' => 0,
+		'uniqueVoted' => 0,
 		'multiple' => true,
 		'votedBy' => array(),
 		'question' => array('text' => '(not set yet)'));
@@ -83,6 +84,7 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 		return (new Entities\Poll())
 				->setId($array_poll['id'])
 				->setVoted($array_poll['voted'])
+				->setUniqueVoted($array_poll['uniqueVoted'])
 				->setMultiple(isset($array_poll['multiple']) ? $array_poll['multiple'] : false)
 				->setAnswers($this->getAnswers($array_poll['id']))
 				->setQuestion($this->getQuestion($array_poll['id']));
@@ -128,13 +130,18 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 			if(!is_array($votes)) {
 				$votes = array($votes);
 			}
+			$voted = false;
 			foreach($votes as $vote) {
 				foreach($item['answers'] as &$answer) {
 					if($answer['id'] === $vote) {
 						$answer['voted'] ++;
 						$item['voted'] ++;
+						$voted = true;
 					}
 				}
+			}
+			if($voted) {
+				$item['uniqueVoted'] ++;
 			}
 			if(!in_array($this->request->getRemoteAddress(), $item['votedBy'])) {
 				//$item['votedBy'][] = $this->request->getRemoteAddress();
