@@ -7,6 +7,8 @@ use Tulinkry\Poll\Services\IPollProvider;
 
 class PollControl extends UI\Control
 {
+	const COLLAPSE_THRESHOLD = 'collapseThreshold';
+
 	protected $polls;
 	protected $id;
 	protected $options;
