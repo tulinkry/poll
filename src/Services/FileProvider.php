@@ -125,6 +125,21 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 		return $this->item($poll['id']);
 	}
 
+	public function clear($id) {
+		if(($poll = $this->load($id)) !== null) {
+			$poll['voted'] = $this->defaults['voted'];
+			$poll['uniqueVoted'] = $this->defaults['uniqueVoted'];
+			$poll['votedBy'] = $this->defaults['votedBy'];
+			$poll['answers'] = $this->defaults['answers'];
+			foreach($poll['answers'] as &$answer) {
+				$answer['voted'] = $this->defaults['voted'];
+			}
+			$this->session->getSection(self::SESSION)->offsetSet('poll-' . $id, false);
+			return $this->save($poll);
+		}
+		return null;
+	}
+
 	public function vote($id, $votes) {
 		if(($item = $this->load($id)) !== null) {
 			if(!is_array($votes)) {
@@ -144,11 +159,10 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 				$item['uniqueVoted'] ++;
 			}
 			if(!in_array($this->request->getRemoteAddress(), $item['votedBy'])) {
-				//$item['votedBy'][] = $this->request->getRemoteAddress();
+				$item['votedBy'][] = $this->request->getRemoteAddress();
 			}
-			//$this->session->getSection(self::SESSION)->offsetSet('poll-' . $id, true);
-			$this->save($item);
-			return;
+			$this->session->getSection(self::SESSION)->offsetSet('poll-' . $id, true);
+			return $this->save($item);
 		}
 		throw new \Exception("No poll");
 	}
