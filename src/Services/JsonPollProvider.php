@@ -7,6 +7,7 @@ use Tulinkry\Poll\Services\IPollProvider;
 use Nette\Http\Request;
 use Nette\Http\Session;
 
+use Nette\Utils\DateTime;
 use Nette\Utils\Json;
 use Nette\Utils\Strings;
 
@@ -20,7 +21,18 @@ class JsonPollProvider extends FileProvider
 
 		parent::__construct($path,
 							function($data) { return Json::encode($data, Json::PRETTY); }, 
-							function($data) { return Json::decode($data, Json::FORCE_ARRAY); }, 
+							function($data) {
+								$data = Json::decode($data, Json::FORCE_ARRAY);
+								if($data !== FALSE && isset($data['polls'])) {
+									foreach($data['polls'] as &$poll) {
+										if(isset($poll['votedBy']) && is_array($poll['votedBy'])) {
+											foreach($poll['votedBy'] as &$vote) {
+												$vote['date'] = DateTime::from($vote['date']);
+											}
+										}
+									}
+								}
+							},
 							$request, 
 							$session);
 	}

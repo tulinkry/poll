@@ -10,6 +10,7 @@ use Tulinkry\Poll\Entities;
 use Nette\Http\Request;
 use Nette\Http\Session;
 
+use Nette\Utils\DateTime;
 use Nette\Utils\Json;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Strings;
@@ -141,6 +142,10 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 	}
 
 	public function vote($id, $votes) {
+		if(!$this->isVotable($id)) {
+			throw new \Exception('This user has already voted');
+		}
+
 		if(($item = $this->load($id)) !== null) {
 			if(!is_array($votes)) {
 				$votes = array($votes);
@@ -159,7 +164,8 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 				$item['uniqueVoted'] ++;
 			}
 			if(!in_array($this->request->getRemoteAddress(), $item['votedBy'])) {
-				$item['votedBy'][] = $this->request->getRemoteAddress();
+				$item['votedBy'][] = array('ip' => $this->request->getRemoteAddress(),
+										   'date' => new DateTime());
 			}
 			$this->session->getSection(self::SESSION)->offsetSet('poll-' . $id, true);
 			return $this->save($item);
@@ -207,7 +213,11 @@ abstract class FileProvider extends BaseModel implements IPollProvider
 		}
 
 		if(($item = $this->load($id)) !== null && isset($item['votedBy'])) {
-			return ! in_array($this->request->getRemoteAddress(), $item['votedBy']);
+			foreach($item['votedBy'] as $vote) {
+				if($vote['ip'] === $this->request->getRemoteAddress() &&
+				   $vote['date'] > (new DateTime())->modify('-30 days'))
+					return false;
+			}
 		}
 
 		return true;
