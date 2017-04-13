@@ -17,7 +17,7 @@ class FormPollControl extends PollControl
 			$answers[$answer->id] = $answer->text;
 		}
 
-		sort($answers);
+		asort($answers);
 
 		if($this->getPoll()->isMultiple()) {
 			$checkbox = $form->addCheckboxList('poll_options', 'Hlasujte', $answers)
