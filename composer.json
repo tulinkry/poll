@@ -9,11 +9,11 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "git@github.com:tulinkry/tulinkry.git"
+            "url": "https://github.com/tulinkry/tulinkry"
         },
         {
             "type": "vcs",
-            "url": "git@github.com:tulinkry/script.git"
+            "url": "https://github.com/tulinkry/script"
         }
     ],    
     "require": {
